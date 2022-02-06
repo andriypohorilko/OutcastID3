@@ -83,7 +83,7 @@ extension OutcastID3.Frame.TranscriptionFrame {
         }
         
         let lyricsData = data.subdata(in: frameContentRangeStart ..< data.count)
-        let lyrics = String(data: lyricsData, encoding: encoding)
+        let lyrics = String(data: lyricsData, encoding: .utf8) ?? String(data: lyricsData, encoding: .utf16)
         
         return OutcastID3.Frame.TranscriptionFrame(
             encoding: encoding,
