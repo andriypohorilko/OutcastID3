@@ -83,7 +83,14 @@ extension OutcastID3.Frame.TranscriptionFrame {
         }
         
         let lyricsData = data.subdata(in: frameContentRangeStart ..< data.count)
-        let lyrics = String(data: lyricsData, encoding: .utf8) ?? String(data: lyricsData, encoding: .utf16)
+        
+        // sometimes actual string encoding differs from what we get from the mp3 tag. So, we try to get lyrics encoding first
+        let lyrics: String?
+        if let lyricsEncoding = lyricsData.stringEncoding {
+            lyrics = String(data: lyricsData, encoding: lyricsEncoding)
+        } else {
+            lyrics = String(data: lyricsData, encoding: .utf8) ?? String(data: lyricsData, encoding: .utf16) ?? String(data: lyricsData, encoding: encoding)
+        }
         
         return OutcastID3.Frame.TranscriptionFrame(
             encoding: encoding,
@@ -91,5 +98,13 @@ extension OutcastID3.Frame.TranscriptionFrame {
             lyricsDescription: lyricsDescription ?? "",
             lyrics: lyrics ?? ""
         )
+    }
+}
+
+extension Data {
+    var stringEncoding: String.Encoding? {
+        var nsString: NSString?
+        guard case let rawValue = NSString.stringEncoding(for: self, encodingOptions: nil, convertedString: &nsString, usedLossyConversion: nil), rawValue != 0 else { return nil }
+        return .init(rawValue: rawValue)
     }
 }
